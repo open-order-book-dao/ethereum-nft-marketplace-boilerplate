@@ -21,7 +21,7 @@ const styles = {
 };
 
 function NFTBalance() {
-  const { NFTBalance, fetchSuccess } = useNFTBalance();
+  const { NFTBalance, fetchSuccess } = useNFTBalance({ limit: 8 });
   const { chainId, marketAddress, contractABI } = useMoralisDapp();
   const { Moralis } = useMoralis();
   const [visible, setVisibility] = useState(false);
@@ -35,44 +35,56 @@ function NFTBalance() {
 
   async function list(nft, listPrice) {
     setLoading(true);
-    const p = listPrice * ("1e" + 18);
-    const ops = {
-      contractAddress: marketAddress,
-      functionName: listItemFunction,
-      abi: contractABIJson,
-      params: {
-        nftContract: nft.token_address,
-        tokenId: nft.token_id,
-        price: String(p),
-      },
-    };
 
-    await contractProcessor.fetch({
-      params: ops,
-      onSuccess: () => {
-        console.log("success");
-        setLoading(false);
-        setVisibility(false);
-        addItemImage();
-        succList();
-      },
-      onError: (error) => {
-        setLoading(false);
-        failList();
-      },
-    });
+    // TODO Replace with OO SDK
+    // const p = listPrice * ("1e" + 18);
+    // const ops = {
+    //   contractAddress: marketAddress,
+    //   functionName: listItemFunction,
+    //   abi: contractABIJson,
+    //   params: {
+    //     nftContract: nft.token_address,
+    //     tokenId: nft.token_id,
+    //     price: String(p),
+    //   },
+    // };
+
+    // await contractProcessor.fetch({
+    //   params: ops,
+    //   onSuccess: () => {
+    //     console.log("success");
+    //     setLoading(false);
+    //     setVisibility(false);
+    //     addItemImage();
+    //     succList();
+    //   },
+    //   onError: (error) => {
+    //     setLoading(false);
+    //     failList();
+    //   },
+    // });
   }
 
-
   async function approveAll(nft) {
-    setLoading(true);  
+    setLoading(true);
     const ops = {
       contractAddress: nft.token_address,
       functionName: "setApprovalForAll",
-      abi: [{"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"stateMutability":"nonpayable","type":"function"}],
+      abi: [
+        {
+          inputs: [
+            { internalType: "address", name: "operator", type: "address" },
+            { internalType: "bool", name: "approved", type: "bool" },
+          ],
+          name: "setApprovalForAll",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
       params: {
         operator: marketAddress,
-        approved: true
+        approved: true,
       },
     };
 
@@ -215,15 +227,13 @@ function NFTBalance() {
         onOk={() => list(nftToSend, price)}
         okText="List"
         footer={[
-          <Button onClick={() => setVisibility(false)}>
-            Cancel
-          </Button>,
+          <Button onClick={() => setVisibility(false)}>Cancel</Button>,
           <Button onClick={() => approveAll(nftToSend)} type="primary">
             Approve
           </Button>,
           <Button onClick={() => list(nftToSend, price)} type="primary">
             List
-          </Button>
+          </Button>,
         ]}
       >
         <Spin spinning={loading}>
