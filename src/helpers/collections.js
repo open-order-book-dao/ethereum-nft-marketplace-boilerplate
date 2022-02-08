@@ -1,4 +1,19 @@
 export const networkCollections = {
+  "0x4": [
+    //Add Your Collections here
+    {
+      image:
+        "https://lh3.googleusercontent.com/F2hUUEYVmNHG-ccddk5chlTL2JM4MlsW6th72KLxMCDKUZ1b7-FJGcHus2M2J524nBYzcuoIFBqW_nBfgay-0gTRF65V_5aZrcErwg=s130",
+      name: "Lost Glitches Comic",
+      addrs: "0x151a44Ad90d179457B22368F8aa91d14EA83Bb9c",
+    },
+    {
+      image:
+        "https://lh3.googleusercontent.com/StxGb1ZUJYW6bQOWqe14HJ6FAoAJJ9s5dd23Cjf8IkD1YFMzfAC0VQaEUnjSnybNAghR_1I7XhF7UEwBRh03xmVjFXXz9LObS-BQRw=s130",
+      name: "The Lost Glitches",
+      addrs: "0x4Fb738B9393E87D64016CF4b16E0f3384e9D89Db",
+    },
+  ],
   "0x13881": [
     //Add Your Collections here
     {
