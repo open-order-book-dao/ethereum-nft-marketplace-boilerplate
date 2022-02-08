@@ -26,11 +26,12 @@ export const useNFTBalance = (options) => {
           NFT.image = resolveLink(NFT.metadata?.image);
         } else if (NFT?.token_uri) {
           try {
-            await fetch(NFT.token_uri)
-              .then((response) => response.json())
-              .then((data) => {
-                NFT.image = resolveLink(data.image);
-              });
+            // TODO fetching takes to long for not cached images by moralis!
+            // await fetch(NFT.token_uri)
+            //   .then((response) => response.json())
+            //   .then((data) => {
+            //     NFT.image = resolveLink(data.image);
+            //   });
           } catch (error) {
             setFetchSuccess(false);
 
