@@ -6,6 +6,8 @@ import { FileSearchOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
 import { getExplorer } from "helpers/networks";
 import { useWeb3ExecuteFunction } from "react-moralis";
+import { useOpenOrders } from "providers/OpenOrdersProvider/OpenOrdersProvider";
+
 const { Meta } = Card;
 
 const styles = {
@@ -32,10 +34,10 @@ function NFTBalance() {
   const contractABIJson = JSON.parse(contractABI);
   const listItemFunction = "createMarketItem";
   const ItemImage = Moralis.Object.extend("ItemImages");
+  const { sdk } = useOpenOrders();
 
   async function list(nft, listPrice) {
     setLoading(true);
-
     // TODO Replace with OO SDK
     // const p = listPrice * ("1e" + 18);
     // const ops = {

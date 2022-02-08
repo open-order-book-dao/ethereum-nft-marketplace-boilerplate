@@ -5,6 +5,7 @@ import { MoralisProvider } from "react-moralis";
 import "./index.css";
 import QuickStart from "components/QuickStart";
 import { MoralisDappProvider } from "./providers/MoralisDappProvider/MoralisDappProvider";
+import { OpenOrdersProvider } from "providers/OpenOrdersProvider/OpenOrdersProvider";
 
 /** Get your free Moralis Account https://moralis.io/ */
 
@@ -17,7 +18,9 @@ const Application = () => {
     return (
       <MoralisProvider appId={APP_ID} serverUrl={SERVER_URL}>
         <MoralisDappProvider>
-          <App isServerInfo />
+          <OpenOrdersProvider>
+            <App isServerInfo />
+          </OpenOrdersProvider>
         </MoralisDappProvider>
       </MoralisProvider>
     );
