@@ -37,40 +37,47 @@ function NFTBalance() {
   const { sdk } = useOpenOrders();
 
   async function list(nft, listPrice) {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const provider = await Moralis.enableWeb3();
-    const signerOfExecutingWallet = provider.getSigner();
-    const actingWalletAddress = walletAddress;
-    const marketplaceFeeReceiverAddress = actingWalletAddress;
+      const provider = await Moralis.enableWeb3();
+      const signerOfExecutingWallet = provider.getSigner();
+      const actingWalletAddress = walletAddress;
+      const marketplaceFeeReceiverAddress = actingWalletAddress;
 
-    const nativeTokenAddress = ZeroHexAddress;
+      const nativeTokenAddress = ZeroHexAddress;
 
-    const order = await sdk.createFixedPriceOrderFromSeller(
-      {
-        chainId,
-        validFrom: new Date(),
-        validUntil: new Date("2023-01-01"),
-        nft: {
-          contractAddress: nft.token_address,
-          tokenId: nft.token_id,
-          amountOfTokens: 1,
-        },
-        payment: {
-          contractAddress: nativeTokenAddress,
-          minPercentageToAsk: 95,
-          pricePerToken: listPrice,
-          brokerFee: {
-            fee: 5,
-            receiver: marketplaceFeeReceiverAddress,
+      const order = await sdk.createFixedPriceOrderFromSeller(
+        {
+          chainId,
+          validFrom: new Date(),
+          validUntil: new Date("2023-01-01"),
+          nft: {
+            contractAddress: nft.token_address,
+            tokenId: nft.token_id,
+            amountOfTokens: 1,
+          },
+          payment: {
+            contractAddress: nativeTokenAddress,
+            minPercentageToAsk: 95,
+            pricePerToken: listPrice,
+            brokerFee: {
+              fee: 5,
+              receiver: marketplaceFeeReceiverAddress,
+            },
           },
         },
-      },
-      actingWalletAddress
-    );
+        actingWalletAddress
+      );
 
-    await order.sign(signerOfExecutingWallet);
-    sdk.broadcastOrder(order);
+      console.log({ order });
+
+      await order.sign(signerOfExecutingWallet);
+      await sdk.broadcastOrder(order);
+      setVisibility(false);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function approveAll(nft) {
@@ -256,6 +263,7 @@ function NFTBalance() {
           />
           <Input
             autoFocus
+            value={price}
             placeholder={`Listing Price in Native Token of chain ${chainId}`}
             onChange={(e) => setPrice(e.target.value)}
           />
