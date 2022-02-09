@@ -1,11 +1,12 @@
 import SDK from "@open-order-book-dao/orderbook-client-sdk-js";
 import React from "react";
-import { useMoralis } from "react-moralis";
 import OpenOrdersContext from "./context";
-function OpenOrdersProvider({ children }) {
-//   const { web3, Moralis, user } = useMoralis();
 
-  const sdk = new SDK();
+function OpenOrdersProvider({ children }) {
+  const sdk = new SDK({
+    apiEndpoint: "http://localhost:8080",
+  });
+
   return (
     <OpenOrdersContext.Provider value={{ sdk }}>
       {children}
