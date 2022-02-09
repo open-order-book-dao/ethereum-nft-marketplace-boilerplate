@@ -1,21 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { getNativeByChain } from "helpers/networks";
-import { getCollectionsByChain } from "helpers/collections";
-import {
-  useMoralis,
-  useMoralisQuery,
-  useNewMoralisObject,
-} from "react-moralis";
-import { Card, Image, Tooltip, Modal, Badge, Alert, Spin } from "antd";
-import { useNFTTokenIds } from "hooks/useNFTTokenIds";
 import {
   FileSearchOutlined,
   RightCircleOutlined,
-  ShoppingCartOutlined,
+  ShoppingCartOutlined
 } from "@ant-design/icons";
+import { Alert, Badge, Card, Image, Modal, Spin, Tooltip } from "antd";
+import { getCollectionsByChain } from "helpers/collections";
+import { getExplorer, getNativeByChain } from "helpers/networks";
+import { useNFTTokenIds } from "hooks/useNFTTokenIds";
 import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
-import { getExplorer } from "helpers/networks";
-import { useWeb3ExecuteFunction } from "react-moralis";
+import React, { useState } from "react";
+import {
+  useMoralis,
+  useMoralisQuery, useWeb3ExecuteFunction
+} from "react-moralis";
 const { Meta } = Card;
 
 const styles = {
@@ -85,7 +82,6 @@ function NFTTokenIds({ inputValue, setInputValue }) {
   );
   const purchaseItemFunction = "createMarketSale";
   const NFTCollections = getCollectionsByChain(chainId);
-
   async function purchase() {
     setLoading(true);
     const tokenDetails = getMarketItem(nftToBuy);
