@@ -1,4 +1,3 @@
-import { ContactsOutlined } from "@ant-design/icons";
 import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
 import { useEffect, useState } from "react";
 import { useMoralisWeb3Api, useMoralisWeb3ApiCall } from "react-moralis";
@@ -22,6 +21,10 @@ export const useNFTTokenIds = (addr) => {
     limit: 10,
   });
 
+  useEffect(()=>{
+    getNFTTokenIds()
+  },[getNFTTokenIds])
+
   useEffect(async () => {
     if (data?.result) {
       const NFTs = data.result;
@@ -40,7 +43,7 @@ export const useNFTTokenIds = (addr) => {
               });
           } catch (error) {
             setFetchSuccess(false);
-              
+
 /*          !!Temporary work around to avoid CORS issues when retrieving NFT images!!
             Create a proxy server as per https://dev.to/terieyenike/how-to-create-a-proxy-server-on-heroku-5b5c
             Replace <your url here> with your proxy server_url below
