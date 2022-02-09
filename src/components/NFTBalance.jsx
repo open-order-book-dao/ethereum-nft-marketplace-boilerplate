@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { useMoralis } from "react-moralis";
-import { Card, Image, Tooltip, Modal, Input, Alert, Spin, Button } from "antd";
-import { useNFTBalance } from "hooks/useNFTBalance";
 import { FileSearchOutlined, ShoppingCartOutlined } from "@ant-design/icons";
-import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
+import { ZeroHexAddress } from "@open-order-book-dao/orderbook-shared";
+import { Alert, Button, Card, Image, Input, Modal, Spin, Tooltip } from "antd";
 import { getExplorer } from "helpers/networks";
-import { useWeb3ExecuteFunction } from "react-moralis";
+import { useNFTBalance } from "hooks/useNFTBalance";
+import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
 import { useOpenOrders } from "providers/OpenOrdersProvider/OpenOrdersProvider";
+import React, { useState } from "react";
+import { useMoralis, useWeb3ExecuteFunction } from "react-moralis";
 
 const { Meta } = Card;
 
@@ -24,7 +24,8 @@ const styles = {
 
 function NFTBalance() {
   const { NFTBalance, fetchSuccess } = useNFTBalance({ limit: 8 });
-  const { chainId, marketAddress, contractABI } = useMoralisDapp();
+  const { chainId, marketAddress, contractABI, walletAddress } =
+    useMoralisDapp();
   const { Moralis } = useMoralis();
   const [visible, setVisibility] = useState(false);
   const [nftToSend, setNftToSend] = useState(null);
@@ -32,39 +33,44 @@ function NFTBalance() {
   const [loading, setLoading] = useState(false);
   const contractProcessor = useWeb3ExecuteFunction();
   const contractABIJson = JSON.parse(contractABI);
-  const listItemFunction = "createMarketItem";
   const ItemImage = Moralis.Object.extend("ItemImages");
   const { sdk } = useOpenOrders();
 
   async function list(nft, listPrice) {
     setLoading(true);
-    // TODO Replace with OO SDK
-    // const p = listPrice * ("1e" + 18);
-    // const ops = {
-    //   contractAddress: marketAddress,
-    //   functionName: listItemFunction,
-    //   abi: contractABIJson,
-    //   params: {
-    //     nftContract: nft.token_address,
-    //     tokenId: nft.token_id,
-    //     price: String(p),
-    //   },
-    // };
 
-    // await contractProcessor.fetch({
-    //   params: ops,
-    //   onSuccess: () => {
-    //     console.log("success");
-    //     setLoading(false);
-    //     setVisibility(false);
-    //     addItemImage();
-    //     succList();
-    //   },
-    //   onError: (error) => {
-    //     setLoading(false);
-    //     failList();
-    //   },
-    // });
+    const provider = await Moralis.enableWeb3();
+    const signerOfExecutingWallet = provider.getSigner();
+    const actingWalletAddress = walletAddress;
+    const marketplaceFeeReceiverAddress = actingWalletAddress;
+
+    const nativeTokenAddress = ZeroHexAddress;
+
+    const order = await sdk.createFixedPriceOrderFromSeller(
+      {
+        chainId,
+        validFrom: new Date(),
+        validUntil: new Date("2023-01-01"),
+        nft: {
+          contractAddress: nft.token_address,
+          tokenId: nft.token_id,
+          amountOfTokens: 1,
+        },
+        payment: {
+          contractAddress: nativeTokenAddress,
+          minPercentageToAsk: 95,
+          pricePerToken: listPrice,
+          brokerFee: {
+            fee: 5,
+            receiver: marketplaceFeeReceiverAddress,
+          },
+        },
+      },
+      actingWalletAddress
+    );
+
+    await order.sign(signerOfExecutingWallet);
+    sdk.broadcastOrder(order);
   }
 
   async function approveAll(nft) {
@@ -250,7 +256,7 @@ function NFTBalance() {
           />
           <Input
             autoFocus
-            placeholder="Listing Price in MATIC"
+            placeholder={`Listing Price in Native Token of chain ${chainId}`}
             onChange={(e) => setPrice(e.target.value)}
           />
         </Spin>

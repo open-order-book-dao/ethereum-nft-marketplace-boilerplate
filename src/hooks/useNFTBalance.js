@@ -16,6 +16,10 @@ export const useNFTBalance = (options) => {
   } = useMoralisWeb3ApiCall(account.getNFTs, { chain: chainId, ...options });
   const [fetchSuccess, setFetchSuccess] = useState(true);
 
+  useEffect(()=>{
+    getNFTBalance();
+  },[getNFTBalance]);
+
   useEffect(async () => {
     if (data?.result) {
       const NFTs = data.result;
