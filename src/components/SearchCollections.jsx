@@ -7,12 +7,6 @@ function SearchCollections({setInputValue}){
     const { Option } = Select;
     const { chainId } = useMoralisDapp();
     const NFTCollections = getCollectionsByChain(chainId);
-    
-    
-
-    function onChange(value) {
-        setInputValue(value);
-    }
 
     return (
         <>
@@ -22,7 +16,7 @@ function SearchCollections({setInputValue}){
                     marginLeft: "20px" }}
             placeholder="Find a Collection"
             optionFilterProp="children"
-            onChange={onChange}
+            onChange={setInputValue}
         >   
         {NFTCollections && 
             NFTCollections.map((collection, i) => 

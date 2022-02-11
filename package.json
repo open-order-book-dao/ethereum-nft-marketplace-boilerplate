@@ -4,6 +4,9 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
+    "@open-order-book-dao/orderbook-client-sdk-js": "file:../orderbook/dist/packages/orderbook/client/sdk/js",
+    "@open-order-book-dao/orderbook-shared": "file:../orderbook/dist/packages/orderbook/shared",
+    "@open-order-book-dao/shared": "file:../orderbook/dist/packages/orderbook/shared",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
@@ -25,7 +28,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "link": "npm link ../orderbook/dist/packages/orderbook/client/sdk/js ../orderbook/dist/packages/orderbook/shared",
+    "link": "(cd ../orderbook/dist/packages/orderbook/client/sdk/js && npm link) && (cd ../orderbook/dist/packages/orderbook/shared && npm link) && npm link @open-order-book-dao/shared --save && npm link @open-order-book-dao/orderbook-client-sdk-js --save",
     "devchain": "node Truffle/scripts/devChain.js",
     "connect": "moralis-admin-cli connect-local-devchain",
     "watch:events": "moralis-admin-cli add-contract",

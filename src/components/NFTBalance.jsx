@@ -1,5 +1,4 @@
 import { FileSearchOutlined, ShoppingCartOutlined } from "@ant-design/icons";
-import { ZeroHexAddress } from "@open-order-book-dao/orderbook-shared";
 import { Alert, Button, Card, Image, Input, Modal, Spin, Tooltip } from "antd";
 import { getExplorer } from "helpers/networks";
 import { useNFTBalance } from "hooks/useNFTBalance";
@@ -7,6 +6,7 @@ import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvide
 import { useOpenOrders } from "providers/OpenOrdersProvider/OpenOrdersProvider";
 import React, { useState } from "react";
 import { useMoralis, useWeb3ExecuteFunction } from "react-moralis";
+import {ZeroHexAddress} from '@open-order-book-dao/shared'
 
 const { Meta } = Card;
 
@@ -34,14 +34,12 @@ function NFTBalance() {
   const contractProcessor = useWeb3ExecuteFunction();
   const contractABIJson = JSON.parse(contractABI);
   const ItemImage = Moralis.Object.extend("ItemImages");
-  const { sdk } = useOpenOrders();
+  const { sdk, signer } = useOpenOrders();
 
   async function list(nft, listPrice) {
     try {
       setLoading(true);
 
-      const provider = await Moralis.enableWeb3();
-      const signerOfExecutingWallet = provider.getSigner();
       const actingWalletAddress = walletAddress;
       const marketplaceFeeReceiverAddress = actingWalletAddress;
 
@@ -72,7 +70,7 @@ function NFTBalance() {
 
       console.log({ order });
 
-      await order.sign(signerOfExecutingWallet);
+      await order.sign(signer);
       await sdk.broadcastOrder(order);
       setVisibility(false);
     } finally {
@@ -230,7 +228,7 @@ function NFTBalance() {
               }
               key={index}
             >
-              <Meta title={nft.name} description={nft.contract_type} />
+              <Meta title={nft.name} description={`${nft.contract_type} (#${nft.token_id})`} />
             </Card>
           ))}
       </div>

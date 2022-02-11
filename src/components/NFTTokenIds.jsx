@@ -1,18 +1,15 @@
-import {
-  FileSearchOutlined,
-  RightCircleOutlined,
-  ShoppingCartOutlined
-} from "@ant-design/icons";
-import { Alert, Badge, Card, Image, Modal, Spin, Tooltip } from "antd";
-import { getCollectionsByChain } from "helpers/collections";
-import { getExplorer, getNativeByChain } from "helpers/networks";
-import { useNFTTokenIds } from "hooks/useNFTTokenIds";
-import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
-import React, { useState } from "react";
-import {
-  useMoralis,
-  useMoralisQuery, useWeb3ExecuteFunction
-} from "react-moralis";
+import {FileSearchOutlined, RightCircleOutlined, ShoppingCartOutlined} from "@ant-design/icons";
+import {Alert, Badge, Card, Image, Modal, Spin, Tooltip} from "antd";
+import {getCollectionsByChain} from "helpers/collections";
+import {getExplorer, getNativeByChain} from "helpers/networks";
+import {useNFTTokenIds} from "hooks/useNFTTokenIds";
+import {useMoralisDapp} from "providers/MoralisDappProvider/MoralisDappProvider";
+import React, {useCallback, useEffect, useState} from "react";
+import {useMoralis, useWeb3ExecuteFunction} from "react-moralis";
+import {useOpenOrders} from "../providers/OpenOrdersProvider/OpenOrdersProvider";
+import {useHistory, useLocation} from "react-router";
+import {formatUnits} from '@open-order-book-dao/shared';
+
 const { Meta } = Card;
 
 const styles = {
@@ -63,64 +60,77 @@ function NFTTokenIds({ inputValue, setInputValue }) {
   const { chainId, marketAddress, contractABI, walletAddress } =
     useMoralisDapp();
   const nativeName = getNativeByChain(chainId);
+  const { sdk, signer } = useOpenOrders();
   const contractABIJson = JSON.parse(contractABI);
   const { Moralis } = useMoralis();
-  const queryMarketItems = useMoralisQuery("MarketItems");
-  const fetchMarketItems = JSON.parse(
-    JSON.stringify(queryMarketItems.data, [
-      "objectId",
-      "createdAt",
-      "price",
-      "nftContract",
-      "itemId",
-      "sold",
-      "tokenId",
-      "seller",
-      "owner",
-      "confirmed",
-    ])
-  );
   const purchaseItemFunction = "createMarketSale";
   const NFTCollections = getCollectionsByChain(chainId);
-  async function purchase() {
-    setLoading(true);
-    const tokenDetails = getMarketItem(nftToBuy);
-    const itemID = tokenDetails.itemId;
-    const tokenPrice = tokenDetails.price;
-    const ops = {
-      contractAddress: marketAddress,
-      functionName: purchaseItemFunction,
-      abi: contractABIJson,
-      params: {
-        nftContract: nftToBuy.token_address,
-        itemId: itemID,
-      },
-      msgValue: tokenPrice,
-    };
+  const [availableNftOrders, setAvailableNftOrders] = useState({});
+  const history = useHistory();
+  const location = useLocation();
 
-    await contractProcessor.fetch({
-      params: ops,
-      onSuccess: () => {
-        console.log("success");
-        setLoading(false);
-        setVisibility(false);
-        updateSoldMarketItem();
-        succPurchase();
-      },
-      onError: (error) => {
-        setLoading(false);
-        failPurchase();
-      },
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const nftIdentifier = params.get('selected-nft');
+    if (!nftIdentifier) {
+      return;
+    }
+
+    const parts = nftIdentifier.split('-');
+
+    const contract = parts[0];
+    const tokenId = Number(parts[1]);
+
+    if (!contract || !tokenId) {
+      return;
+    }
+
+    const nft = NFTTokenIds.find(nft => nft.token_address === contract && nft.token_id === tokenId);
+    if (!nft) {
+      return;
+    }
+
+    console.log('found nft in search params', nftIdentifier, nft);
+    handleBuyClick(nft);
+  }, [location]);
+
+  const fetchOrdersOfOneNft = useCallback(async (chainId, contractAddress, tokenId) => {
+    return await sdk.getAvailableFixedPriceOrdersFromSeller({
+      tokenId,
+      chainId,
+      contractAddress,
     });
-  }
+  }, []);
 
-  const handleBuyClick = (nft) => {
+  const fetchAllOrdersOfAllNfts = useCallback(async () => {
+    setAvailableNftOrders({});
+
+    for (const token of NFTTokenIds) {
+      const orders = await fetchOrdersOfOneNft(chainId, token.token_address, token.token_id);
+      setAvailableNftOrders((prev) => ({ ...prev, [`${token.token_address}/${token.token_id}`]: orders }));
+    }
+  }, [NFTTokenIds]);
+
+  useEffect(() => {
+    fetchAllOrdersOfAllNfts();
+  }, [fetchAllOrdersOfAllNfts]);
+
+  const handleBuyClick = useCallback(async (nft) => {
     setNftToBuy(nft);
     console.log(nft.image);
     setVisibility(true);
-  };
+    console.log(location);
+    const searchParams = new URLSearchParams(location.search);
+    console.log('input-value', searchParams.get('input-value'));
+    searchParams.set("selected-nft", `${nft.token_address}-${nft.token_id}`);
 
-  function succPurchase() {
+    history.push({
+      pathname: location.pathname,
+      search: searchParams.toString(),
+    });
+  }, [setNftToBuy, setVisibility]);
+
+  const succPurchase = useCallback(() => {
     let secondsToGo = 5;
     const modal = Modal.success({
       title: "Success!",
@@ -129,9 +139,9 @@ function NFTTokenIds({ inputValue, setInputValue }) {
     setTimeout(() => {
       modal.destroy();
     }, secondsToGo * 1000);
-  }
+  }, [Modal]);
 
-  function failPurchase() {
+  const failPurchase = useCallback(() => {
     let secondsToGo = 5;
     const modal = Modal.error({
       title: "Error!",
@@ -140,9 +150,23 @@ function NFTTokenIds({ inputValue, setInputValue }) {
     setTimeout(() => {
       modal.destroy();
     }, secondsToGo * 1000);
-  }
+  }, [Modal]);
 
-  async function updateSoldMarketItem() {
+  const getMarketItem = useCallback ((nft) => {
+    if (!nft) {
+      return false;
+    }
+
+    const availableOrdersOfThisNft = availableNftOrders[`${nft.token_address}/${nft.token_id}`];
+    if (!availableOrdersOfThisNft) {
+      return false;
+    }
+
+    const lowestAvailableOffer = [...availableOrdersOfThisNft].sort((a,b) => a.getPricePerToken() > b.getPricePerToken() ? 1 : -1).shift();
+    return lowestAvailableOffer ?? false;
+  }, [availableNftOrders]);
+
+  const updateSoldMarketItem = useCallback(async () => {
     const id = getMarketItem(nftToBuy).objectId;
     const marketList = Moralis.Object.extend("MarketItems");
     const query = new Moralis.Query(marketList);
@@ -151,18 +175,25 @@ function NFTTokenIds({ inputValue, setInputValue }) {
       obj.set("owner", walletAddress);
       obj.save();
     });
-  }
+  }, [nftToBuy, walletAddress, Moralis, getMarketItem]);
 
-  const getMarketItem = (nft) => {
-    const result = fetchMarketItems?.find(
-      (e) =>
-        e.nftContract === nft?.token_address &&
-        e.tokenId === nft?.token_id &&
-        e.sold === false &&
-        e.confirmed === true
-    );
-    return result;
-  };
+  const purchase = useCallback(async () => {
+    setLoading(true);
+    const orderFromSeller = getMarketItem(nftToBuy);
+
+    try {
+      await sdk.acceptFixedPriceOrderFromSeller(orderFromSeller, signer);
+      console.log("success");
+      setLoading(false);
+      setVisibility(false);
+      updateSoldMarketItem();
+      succPurchase();
+    } catch (e) {
+      setLoading(false);
+      failPurchase();
+      console.error(e);
+    }
+  }, [setLoading, getMarketItem, nftToBuy, setVisibility, updateSoldMarketItem, succPurchase, failPurchase]);
 
   return (
     <>
@@ -215,13 +246,13 @@ function NFTTokenIds({ inputValue, setInputValue }) {
 
         <div style={styles.NFTs}>
           {inputValue === "explore" &&
-            NFTCollections?.map((nft, index) => (
+            NFTCollections?.map((collection, index) => (
               <Card
                 hoverable
                 actions={[
                   <Tooltip title="View Collection">
                     <RightCircleOutlined
-                      onClick={() => setInputValue(nft?.addrs)}
+                      onClick={() => setInputValue(collection?.addrs)}
                     />
                   </Tooltip>,
                 ]}
@@ -229,7 +260,7 @@ function NFTTokenIds({ inputValue, setInputValue }) {
                 cover={
                   <Image
                     preview={false}
-                    src={nft?.image || "error"}
+                    src={collection?.image || "error"}
                     fallback={fallbackImg}
                     alt=""
                     style={{ height: "240px" }}
@@ -237,12 +268,12 @@ function NFTTokenIds({ inputValue, setInputValue }) {
                 }
                 key={index}
               >
-                <Meta title={nft.name} />
+                <Meta title={collection.name} />
               </Card>
             ))}
 
           {inputValue !== "explore" &&
-            NFTTokenIds.slice(0, 20).map((nft, index) => (
+            NFTTokenIds.map((nft, index) => (
               <Card
                 hoverable
                 actions={[
@@ -272,7 +303,7 @@ function NFTTokenIds({ inputValue, setInputValue }) {
                 }
                 key={index}
               >
-                {getMarketItem(nft) && (
+                {getMarketItem(nft) !== false && (
                   <Badge.Ribbon text="Buy Now" color="green"></Badge.Ribbon>
                 )}
                 <Meta title={nft.name} description={`#${nft.token_id}`} />
@@ -294,10 +325,11 @@ function NFTTokenIds({ inputValue, setInputValue }) {
                   margin: "auto",
                 }}
               >
+                {
                 <Badge.Ribbon
                   color="green"
                   text={`${
-                    getMarketItem(nftToBuy).price / ("1e" + 18)
+                    formatUnits(getMarketItem(nftToBuy).getPricePerToken(), 18)
                   } ${nativeName}`}
                 >
                   <img
@@ -309,6 +341,7 @@ function NFTTokenIds({ inputValue, setInputValue }) {
                     }}
                   />
                 </Badge.Ribbon>
+                }
               </div>
             </Spin>
           </Modal>
