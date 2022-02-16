@@ -1,24 +1,38 @@
 import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useMoralisWeb3Api, useMoralisWeb3ApiCall } from "react-moralis";
 import { useIPFS } from "./useIPFS";
+import { getCollectionsAddresses } from "helpers/collections";
 
 export const useNFTBalance = (options) => {
   const { account } = useMoralisWeb3Api();
   const { chainId } = useMoralisDapp();
+  console.log({ chainId });
   const { resolveLink } = useIPFS();
   const [NFTBalance, setNFTBalance] = useState([]);
+  const token_addresses = useMemo(() => {
+    if (chainId) {
+      return getCollectionsAddresses(chainId)
+    }
+  }, [chainId]);
+
   const {
     fetch: getNFTBalance,
     data,
     error,
     isLoading,
-  } = useMoralisWeb3ApiCall(account.getNFTs, { chain: chainId, ...options });
+  } = useMoralisWeb3ApiCall(account.getNFTs, {
+    chain: chainId,
+    token_addresses,
+    ...options,
+  });
   const [fetchSuccess, setFetchSuccess] = useState(true);
 
-  useEffect(()=>{
-    getNFTBalance();
-  },[getNFTBalance]);
+  useEffect(() => {
+    if (token_addresses) {
+      getNFTBalance();
+    }
+  }, [getNFTBalance, token_addresses]);
 
   useEffect(async () => {
     if (data?.result) {
@@ -39,7 +53,7 @@ export const useNFTBalance = (options) => {
           } catch (error) {
             setFetchSuccess(false);
 
-/*          !!Temporary work around to avoid CORS issues when retrieving NFT images!!
+            /*          !!Temporary work around to avoid CORS issues when retrieving NFT images!!
             Create a proxy server as per https://dev.to/terieyenike/how-to-create-a-proxy-server-on-heroku-5b5c
             Replace <your url here> with your proxy server_url below
             Remove comments :)

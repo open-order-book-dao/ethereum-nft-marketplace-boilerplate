@@ -1,24 +1,24 @@
-import {useCallback, useEffect, useMemo, useState} from "react";
-import {useMoralis} from "react-moralis";
-import {
-    BrowserRouter as Router,
-    Switch,
-    Route,
-    NavLink,
-    Redirect,
-} from "react-router-dom";
+import { Layout, Menu } from "antd";
+import "antd/dist/antd.css";
+import Text from "antd/lib/typography/Text";
 import Account from "components/Account";
 import Chains from "components/Chains";
-import NFTBalance from "components/NFTBalance";
-import NFTTokenIds from "components/NFTTokenIds";
-import {Menu, Layout} from "antd";
-import SearchCollections from "components/SearchCollections";
-import "antd/dist/antd.css";
 import NativeBalance from "components/NativeBalance";
-import "./style.css";
-import Text from "antd/lib/typography/Text";
+import NFTBalance from "components/NFTBalance";
 import NFTMarketTransactions from "components/NFTMarketTransactions";
-import {useHistory, useLocation} from "react-router";
+import NFTTokenIds from "components/NFTTokenIds";
+import Token from "components/Token";
+import Collections from "components/Collections";
+import Collection from "components/Collection";
+import SearchCollections from "components/SearchCollections";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMoralis } from "react-moralis";
+import { useHistory, useLocation } from "react-router";
+import {
+  NavLink, Route, Switch
+} from "react-router-dom";
+import "./style.css";
+
 
 const {Header, Footer} = Layout;
 
@@ -104,14 +104,14 @@ const App = ({isServerInfo}) => {
                     }}
                     defaultSelectedKeys={["nftMarket"]}
                 >
-                    <Menu.Item key="nftMarket">
-                        <NavLink to="/NFTMarketPlace">🛒 Explore Market</NavLink>
+                    <Menu.Item key="collections">
+                        <NavLink to="/collections">🛒 Explore Market</NavLink>
                     </Menu.Item>
-                    <Menu.Item key="nft">
-                        <NavLink to="/nftBalance">🖼 Your Collection</NavLink>
+                    <Menu.Item key="profile">
+                        <NavLink to="/profile">🖼 Your Collection</NavLink>
                     </Menu.Item>
                     <Menu.Item key="transactions">
-                        <NavLink to="/Transactions">📑 Your Transactions</NavLink>
+                        <NavLink to="/transactions">📑 Your Transactions</NavLink>
                     </Menu.Item>
                 </Menu>
                 <div style={styles.headerRight}>
@@ -122,17 +122,22 @@ const App = ({isServerInfo}) => {
             </Header>
             <div style={styles.content}>
                 <Switch>
-                    <Route path="/nftBalance">
+                    <Route path="/profile">
                         <NFTBalance/>
                     </Route>
-                    <Route path="/NFTMarketPlace">
-                        <NFTTokenIds inputValue={inputValue} setInputValue={setInputValue}/>
+                    <Route path="/collections">
+                        <Collections/>
                     </Route>
-                    <Route path="/Transactions">
+                    <Route path="/collection/:contract/:tokenId">
+                      <Token/>
+                    </Route>
+                    <Route path="/collection/:contract">
+                      <Collection/>
+                    </Route>
+                    <Route path="/transactions">
                         <NFTMarketTransactions/>
                     </Route>
                 </Switch>
-                <Redirect to="/NFTMarketPlace"/>
             </div>
             <Footer style={{textAlign: "center"}}>
                 <Text style={{display: "block"}}>

@@ -83,3 +83,4 @@ export const networkCollections = {
 };
 
 export const getCollectionsByChain = (chain) => networkCollections[chain];
+export const getCollectionsAddresses = (chain) => networkCollections[chain].map(c=>c.addrs);

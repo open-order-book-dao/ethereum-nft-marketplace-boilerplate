@@ -39,7 +39,7 @@ function NFTBalance() {
   async function list(nft, listPrice) {
     try {
       setLoading(true);
-
+      console.log({nft})
       const actingWalletAddress = walletAddress;
       const marketplaceFeeReceiverAddress = actingWalletAddress;
 
