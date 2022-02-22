@@ -8,7 +8,7 @@ import React, {useCallback, useEffect, useState} from "react";
 import {useMoralis, useWeb3ExecuteFunction} from "react-moralis";
 import {useOpenOrders} from "../providers/OpenOrdersProvider/OpenOrdersProvider";
 import {useHistory, useLocation} from "react-router";
-import {formatUnits} from '@open-order-book-dao/shared';
+import {formatUnits} from '@openorders.dao/orderbook-shared';
 
 const { Meta } = Card;
 

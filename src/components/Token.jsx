@@ -1,19 +1,14 @@
 import {
-  ConsoleSqlOutlined,
-  FileSearchOutlined,
-  RightCircleOutlined,
-  ShoppingCartOutlined,
+  ShoppingCartOutlined
 } from "@ant-design/icons";
 import { Alert, Badge, Card, Image, Modal, Spin, Tooltip } from "antd";
-import { getCollectionsByChain } from "helpers/collections";
-import { getExplorer, getNativeByChain } from "helpers/networks";
+import { getNativeByChain } from "helpers/networks";
 import { useNFT } from "hooks/useNFT";
 import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
 import React, { useCallback, useEffect, useState } from "react";
-import { useMoralis, useWeb3ExecuteFunction } from "react-moralis";
+import { useMoralis } from "react-moralis";
+import { useParams } from "react-router";
 import { useOpenOrders } from "../providers/OpenOrdersProvider/OpenOrdersProvider";
-import { useHistory, useLocation, useParams } from "react-router";
-import { formatUnits } from "@open-order-book-dao/shared";
 
 const { Meta } = Card;
 

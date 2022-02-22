@@ -1,11 +1,11 @@
-import SDK from "@open-order-book-dao/orderbook-client-sdk-js";
+import SDK from "@openorders.dao/orderbook-client-sdk-js";
 import React, {useCallback, useEffect, useState} from "react";
 import OpenOrdersContext from "./context";
 import Moralis from "moralis";
 
 function OpenOrdersProvider({ children }) {
   const sdk = new SDK({
-    apiEndpoint: "http://localhost:8080",
+    apiEndpoint: "https://9s0bbkexch.execute-api.us-east-1.amazonaws.com",
   });
 
   const [signer, setSigner] = useState(null);

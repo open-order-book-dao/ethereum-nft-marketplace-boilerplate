@@ -6,7 +6,7 @@ import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvide
 import { useOpenOrders } from "providers/OpenOrdersProvider/OpenOrdersProvider";
 import React, { useState } from "react";
 import { useMoralis, useWeb3ExecuteFunction } from "react-moralis";
-import {ZeroHexAddress} from '@open-order-book-dao/shared'
+import {ZeroHexAddress} from '@openorders.dao/orderbook-shared'
 
 const { Meta } = Card;
 
