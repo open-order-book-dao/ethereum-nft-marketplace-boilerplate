@@ -7,6 +7,7 @@ function OpenOrdersProvider({ children }) {
   const sdk = new SDK({
     apiEndpoint: "https://9s0bbkexch.execute-api.us-east-1.amazonaws.com",
   });
+  console.log({sdk})
 
   const [signer, setSigner] = useState(null);
 
